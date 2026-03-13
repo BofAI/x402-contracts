@@ -3,7 +3,7 @@
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.20-blue)](https://soliditylang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Smart contracts for the **x402** payment protocol on **TRON** and **BSC**. Enables gasless, signature-based (EIP-712) payment authorizations and native token settlement.
+Smart contracts for the **x402** payment protocol on **TRON** and **BSC**. Enables gasless, [Permit2](https://github.com/Uniswap/permit2)-based payment settlement with cryptographic destination binding via the EIP-712 witness pattern.
 
 ---
 
@@ -19,39 +19,64 @@ Smart contracts for the **x402** payment protocol on **TRON** and **BSC**. Enabl
 
 ## Features
 
-- **EIP-712 typed permits** — Users sign payment details off-chain; a relayer or backend calls `permitTransferFrom` with the signature.
-- **Gasless for the signer** — The submitter pays gas; the signer only needs a one-time `approve` of the PaymentPermit contract.
-- **Optional fee** — Permit can include `feeTo` and `feeAmount` for protocol or facilitator fees.
-- **Replay protection** — Nonce bitmap per owner; time window via `validAfter` / `validBefore`.
+- **Permit2-powered transfers** — Leverages Sunswap's Permit2 contract as the transfer authority. Signers only need a one-time `approve` to Permit2.
+- **Witness-bound destination** — The payment destination (`to`), authorized `facilitator`, and `validAfter` are cryptographically committed in the Permit2 witness, preventing any party from redirecting funds.
+- **Gasless for the signer** — The facilitator submits the transaction and pays gas; the payer only signs off-chain.
+- **Two settlement modes** — `x402ExactPermit2Proxy` always transfers the exact signed amount; `x402UptoPermit2Proxy` allows the facilitator to settle any amount up to the permitted maximum.
+- **Optional EIP-2612 one-shot flow** — `settleWithPermit()` bundles an EIP-2612 `permit()` call with settlement, enabling a fully gasless single-transaction flow for supported tokens.
+- **Replay protection** — Permit2's unordered nonce bitmap combined with a `deadline` and `validAfter` window prevents replay across chains and time.
+- **Reentrancy safe** — All entry points inherit OpenZeppelin's `ReentrancyGuard`.
 
 ---
 
 ## Architecture
 
-| Component        | Role                         | File(s)                |
-|----------------|------------------------------|-------------------------|
-| **PaymentPermit** | Entry point for permits and transfers | `contracts/PaymentPermit.sol` |
-| **PermitHash** | EIP-712 struct hashes        | `contracts/libraries/PermitHash.sol` |
-| **EIP712**     | Domain separator and typed data hashing | `contracts/EIP712.sol` |
-| **IPaymentPermit** | Structs and interface for permits | `contracts/interface/IPaymentPermit.sol` |
+| Component | Role | File(s) |
+|---|---|---|
+| **x402BasePermit2Proxy** | Abstract base: shared settlement logic, witness validation, EIP-2612 permit handling | `contracts/x402BasePermit2Proxy.sol` |
+| **x402ExactPermit2Proxy** | Concrete proxy: always transfers the **exact** permitted amount | `contracts/x402ExactPermit2Proxy.sol` |
+| **x402UptoPermit2Proxy** | Concrete proxy: facilitator chooses amount **up to** the permitted maximum | `contracts/x402UptoPermit2Proxy.sol` |
+| **ISignatureTransfer** | Permit2 interface (witness variant) | `contracts/interfaces/ISignatureTransfer.sol` |
 
-Flow: **User signs** `PaymentPermitDetails` (payment, fee, validity, nonce) → **Relayer/backend** calls `permitTransferFrom(permit, transferDetails, owner, signature)` → Contract pulls tokens from `owner` to `payTo` (and optional `feeTo`) in one shot.
+**Settlement flow:**
+
+```
+Payer signs Permit2 message
+  └─ permitted: { token, amount }
+  └─ witness:   { to, facilitator, validAfter }
+  └─ deadline (upper time bound, enforced by Permit2)
+
+Facilitator calls settle() / settleWithPermit()
+  └─ Proxy validates: facilitator == msg.sender, block.timestamp >= validAfter
+  └─ Permit2.permitWitnessTransferFrom() pulls tokens from payer → to
+```
+
+> The **witness** pattern cryptographically binds the destination (`to`) and the authorized caller (`facilitator`) inside the payer's signature, so neither Permit2 nor the proxy can redirect funds.
 
 ---
 
 ## Deployed Addresses
 
-| Network   | Chain / Environment | PaymentPermit Address |
+| Network   | Chain / Environment | x402ExactPermit2Proxy Address |
 |-----------|---------------------|------------------------|
-| **TRON Mainnet** | Mainnet              | [`TT8rEWbCoNX7vpEUauxb7rWJsTgs8vDLAn`](https://tronscan.org/#/contract/TT8rEWbCoNX7vpEUauxb7rWJsTgs8vDLAn) |
-| **TRON Nile** | Testnet              | [`TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH`](https://nile.tronscan.org/#/contract/TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH) |
-| **TRON Shasta** | Testnet              | [`TR2XninQ3jsvRRLGTifFyUHTBysffooUjt`](https://shasta.tronscan.org/#/contract/TR2XninQ3jsvRRLGTifFyUHTBysffooUjt) |
+| **TRON Mainnet** | Mainnet              | [`TSm6MSWHHBeABh22uqX7SU7QUweav4Cyy6`](https://tronscan.org/#/contract/TSm6MSWHHBeABh22uqX7SU7QUweav4Cyy6) |
+| **TRON Nile** | Testnet              | [`TCd2ZSwbJBAdgFfP5d3gkhKcGs47WNZLLi`](https://nile.tronscan.org/#/contract/TCd2ZSwbJBAdgFfP5d3gkhKcGs47WNZLLi) |
 
-| Network   | Chain / Environment | PaymentPermit Address |
+| Network   | Chain / Environment | x402UptoPermit2Proxy Address |
 |-----------|---------------------|------------------------|
-| **BSC Mainnet** | Mainnet              | [`0x1825bB32db3443dEc2cc7508b2D818fc13EaD878`](https://bscscan.com/address/0x1825bB32db3443dEc2cc7508b2D818fc13EaD878) |
-| **BSC Testnet** | Testnet              | [`0x1825bB32db3443dEc2cc7508b2D818fc13EaD878`](https://testnet.bscscan.com/address/0x1825bB32db3443dEc2cc7508b2D818fc13EaD878) |
+| **TRON Mainnet** | Mainnet              | [`TGHEYAovw8fZz1bgnVgRtgrdGLbagFZYq5`](https://tronscan.org/#/contract/TGHEYAovw8fZz1bgnVgRtgrdGLbagFZYq5) |
+| **TRON Nile** | Testnet              | [`TSForFRqxmZdJ6Yfx2rNaFykhuQLc9cTMR`](https://nile.tronscan.org/#/contract/TSForFRqxmZdJ6Yfx2rNaFykhuQLc9cTMR) |
 
+
+| Network   | Chain / Environment | x402ExactPermit2Proxy Address |
+|-----------|---------------------|------------------------|
+| **BSC Mainnet** | Mainnet              | [`0xEe38Ec718255fe78e9D16aCC0e1183C731679b23`](https://bscscan.com/address/0xEe38Ec718255fe78e9D16aCC0e1183C731679b23) |
+| **BSC Testnet** | Testnet              | [`0xEe38Ec718255fe78e9D16aCC0e1183C731679b23`](https://testnet.bscscan.com/address/0xEe38Ec718255fe78e9D16aCC0e1183C731679b23) |
+
+| Network   | Chain / Environment | x402UptoPermit2Proxy Address |
+|-----------|---------------------|------------------------|
+| **BSC Mainnet** | Mainnet              | [`0x2b30Ed9F37c7C21ae8779c5753B1cCf264DfD63C`](https://bscscan.com/address/0x2b30Ed9F37c7C21ae8779c5753B1cCf264DfD63C) |
+| **BSC Testnet** | Testnet              | [`0x2b30Ed9F37c7C21ae8779c5753B1cCf264DfD63C`](https://testnet.bscscan.com/address/0x2b30Ed9F37c7C21ae8779c5753B1cCf264DfD63C) |
 
 ---
 
@@ -59,39 +84,65 @@ Flow: **User signs** `PaymentPermitDetails` (payment, fee, validity, nonce) → 
 
 ```
 ├── contracts/
-│   ├── PaymentPermit.sol      # Main permit & transfer logic
-│   ├── EIP712.sol             # EIP-712 domain and hashing
-│   ├── interface/
-│   │   ├── IPaymentPermit.sol # Permit structs and interface
-│   │   └── IEIP712.sol
-│   └── libraries/
-│       └── PermitHash.sol     # TypeHashes and struct hashes
-├── deploy/                    # Hardhat deploy scripts
+│   ├── x402BasePermit2Proxy.sol    # Base contract: core permit & transfer logic
+│   ├── x402ExactPermit2Proxy.sol   # Exact-amount payment proxy
+│   ├── x402UptoPermit2Proxy.sol    # Up-to-amount payment proxy
+│   └── interfaces/
+│       └── ISignatureTransfer.sol  # Permit2 signature transfer interface
+├── deploy/                         # Hardhat deploy scripts (BSC / EVM chains)
+│   ├── deploy_x402ExactPermit2Proxy.ts
+│   └── deploy_x402UptoPermit2Proxy.ts
+├── deployTron/                     # Hardhat deploy scripts (TRON)
+│   ├── deploy_x402ExactPermit2Proxy.ts
+│   └── deploy_x402UptoPermit2Proxy.ts
 ├── test/
-│   ├── PaymentPermit.t.sol    # Forge/Hardhat tests
-│   └── MockERC20.sol
+│   ├── PaymentPermit.t.sol         # Forge tests
+│   └── MockERC20.sol               # Mock token for testing
+├── scripts/
+│   └── postinstall.sh              # Post-install setup script
 ├── hardhat.config.ts
 ├── foundry.toml
-└── AGENTS.md                  # Guidelines for AI/agent use of this repo
+├── package.json
+├── tsconfig.json
+└── AGENTS.md                       # Guidelines for AI/agent use of this repo
 ```
 
 ---
 
 ## Integration
 
-1. **Domain & types** — Use the same EIP-712 domain name `"PaymentPermit"` and the struct definitions from `IPaymentPermit.sol` and `PermitHash.sol` so that hashes match the contract. Domain separator uses `block.chainid` and contract address (see `EIP712.sol`).
-2. **ChainId for signing** — When building EIP-712 typed data, use the chainId of the target network so the signature matches the contract. Wallet/TronLink must use the same chainId.
-3. **Sign off-chain** — Build `PaymentPermitDetails` (meta, buyer, caller, payment, fee, delivery), hash with `PermitHash` and domain separator, then sign (e.g. 65-byte `r || s || v`).
-4. **Submit on-chain** — Call `permitTransferFrom(permit, transferDetails, owner, signature)`. The `owner` must have approved the PaymentPermit contract for the `payToken` (and have sufficient balance for `amount` plus optional `feeAmount`).
+1. **Approve Permit2 once** — The payer calls `token.approve(PERMIT2_ADDRESS, type(uint256).max)` once. The canonical Permit2 address is `0x000000000022D473030F116dDEE9F6B43aC78BA3` on all EVM chains.
 
-For full struct and field definitions, see `contracts/interface/IPaymentPermit.sol`.
+2. **Choose a proxy** — Pick the proxy that fits your use case:
+   - `x402ExactPermit2Proxy` — amount is fixed at signing time (similar to EIP-3009).
+   - `x402UptoPermit2Proxy` — facilitator can settle any amount ≤ signed maximum (useful for dynamic pricing).
+
+3. **Build and sign the Permit2 message off-chain** — Construct an EIP-712 typed-data object with:
+   - `PermitTransferFrom`: `{ permitted: { token, amount }, nonce, deadline }`
+   - `Witness`: `{ to, facilitator, validAfter }` (the `WITNESS_TYPE_STRING` is defined in `x402BasePermit2Proxy.sol`)
+   - Domain: Permit2's own domain (not the proxy's), using the target chain's `chainId`.
+
+4. **Settle on-chain** — The facilitator calls:
+   ```solidity
+   // Standard path (Permit2 approval already exists)
+   proxy.settle(permit, [amount,] owner, witness, signature);
+
+   // EIP-2612 one-shot path (bundles token permit + settlement)
+   proxy.settleWithPermit(permit2612, permit, [amount,] owner, witness, signature);
+   ```
+   `msg.sender` must equal `witness.facilitator`, and `block.timestamp` must be ≥ `witness.validAfter`.
+
+For struct definitions, see `contracts/x402BasePermit2Proxy.sol` and `contracts/interfaces/ISignatureTransfer.sol`.
 
 ---
 
 ## Security
 
-- **Access**: Only the signer’s signature authorizes transfers; no single admin can move user funds.
-- **Replay**: Nonces and `validAfter`/`validBefore` limit replay across chains and time.
+- **No admin keys** — There are no owner or upgrade functions. Only a valid payer signature can authorize a transfer.
+- **Facilitator binding** — The `facilitator` address is embedded in the EIP-712 witness; only that exact address can call `settle()`, preventing frontrunning or griefing by third parties.
+- **Replay protection** — Permit2's unordered nonce bitmap ensures each signature is spent exactly once; `deadline` and `validAfter` enforce the valid time window.
+- **Reentrancy guard** — All external functions are protected by OpenZeppelin's `ReentrancyGuard`.
+- **Destination immutability** — The `to` address is part of the witness; it cannot be changed after signing.
 
 We welcome responsible disclosure. Please report issues privately before public disclosure when possible.
 
@@ -106,8 +157,9 @@ We welcome responsible disclosure. Please report issues privately before public 
 ## Contributing
 
 1. Fork the repo and open a branch from `main`.
-2. Follow existing style (Solidity ^0.8.20, existing patterns in `PaymentPermit.sol` and `PermitHash.sol`).
-3. Add or update tests for new behavior.
-4. Open a PR with a clear description; maintainers will review.
+2. Follow existing style (Solidity `^0.8.20`, patterns in `x402BasePermit2Proxy.sol`).
+3. Add or update tests under `test/` for any new behavior.
+4. Run `forge test` and `npx hardhat test` before submitting.
+5. Open a PR with a clear description; maintainers will review.
 
 For agent/AI usage of this codebase, see [AGENTS.md](AGENTS.md).
