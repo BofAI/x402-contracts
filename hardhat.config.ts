@@ -32,9 +32,6 @@ const config: HardhatUserConfig = {
       tron: true, // enable tron network
       deploy: ['deployTron/'], // folder for tron deploy scripts
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [], // account private key for deploy
-      httpHeaders: {
-        'TRON-PRO-API-KEY': process.env.TRON_API_KEY || '',
-      },
     },
     nile: {
       url: process.env.TRON_RPC_URL || 'https://nile.trongrid.io/jsonrpc', // nile rpc url
