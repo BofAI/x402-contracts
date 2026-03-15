@@ -6,11 +6,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  await deploy('x402ExactPermit2Proxy', {
+  await deploy('PaymentPermit', {
     from: deployer,
     args: [],
     log: true,
   });
 };
 export default func;
-func.tags = ['x402ExactPermit2Proxy'];
+func.tags = ['PaymentPermit'];
