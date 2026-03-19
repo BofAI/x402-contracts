@@ -1,0 +1,134 @@
+name: Audit PR
+
+on:
+  push:
+    branches:
+      - main
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  audit-pr-on-main:
+    name: Audit on main push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Linux, ARM64, audit-linux]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check required tools
+        run: |
+          which zip
+          which jq
+
+      - name: Create source archive
+        run: |
+          rm -f /tmp/code.zip
+          zip -r /tmp/code.zip . -x ".git/*"
+
+      - name: Call audit service
+        id: audit
+        run: |
+          RESPONSE=$(curl -s -X POST "${{ vars.AUDIT_SERVICE_URL }}/audit-pr/${{ vars.AUDIT_PR_SKILL }}" \
+            -H "X-API-Key: ${{ secrets.AUDIT_API_KEY }}" \
+            -F "file=@/tmp/code.zip" \
+            -F "from_branch=main" \
+            -F "to_branch=main")
+
+          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
+          echo "$RESPONSE" | jq .
+
+      - name: Write summary
+        run: |
+          REPORT_URL=$(echo '${{ steps.audit.outputs.response }}' | jq -r '.report_url // empty')
+          STATUS_URL=$(echo '${{ steps.audit.outputs.response }}' | jq -r '.status_url // empty')
+          STATUS=$(echo '${{ steps.audit.outputs.response }}' | jq -r '.status // empty')
+
+          {
+            echo "## Audit PR Result"
+            echo ""
+            echo "- status: ${STATUS}"
+            echo "- report_url: ${REPORT_URL}"
+            echo "- status_url: ${STATUS_URL}"
+          } >> $GITHUB_STEP_SUMMARY
+
+  audit-pr-manual:
+    name: Manual PR audit by comment
+    if: >
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      github.event.comment.body == '/audit-pr' &&
+      contains(format(',{0},', vars.AUDIT_ALLOWED_USERS), format(',{0},', github.event.comment.user.login))
+    runs-on: [self-hosted, Linux, ARM64, audit-linux]
+
+    steps:
+      - name: Get PR info
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            core.setOutput('head_ref', pr.data.head.ref);
+            core.setOutput('base_ref', pr.data.base.ref);
+            core.setOutput('head_sha', pr.data.head.sha);
+
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.head_sha }}
+          fetch-depth: 0
+
+      - name: Check required tools
+        run: |
+          which zip
+          which jq
+
+      - name: Create source archive
+        run: |
+          rm -f /tmp/code.zip
+          zip -r /tmp/code.zip . -x ".git/*"
+
+      - name: Call audit service
+        id: audit
+        run: |
+          RESPONSE=$(curl -s -X POST "${{ vars.AUDIT_SERVICE_URL }}/audit-pr/${{ vars.AUDIT_PR_SKILL }}" \
+            -H "X-API-Key: ${{ secrets.AUDIT_API_KEY }}" \
+            -F "file=@/tmp/code.zip" \
+            -F "from_branch=${{ steps.pr.outputs.base_ref }}" \
+            -F "to_branch=${{ steps.pr.outputs.head_ref }}")
+
+          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
+          echo "$RESPONSE" | jq .
+
+      - name: Comment result to PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const response = JSON.parse(`${{ steps.audit.outputs.response }}`);
+            const reportUrl = response.report_url ? `${{ vars.AUDIT_SERVICE_URL }}${response.report_url}` : '';
+            const statusUrl = response.status_url ? `${{ vars.AUDIT_SERVICE_URL }}${response.status_url}` : '';
+            const status = response.status || '';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ Audit PR triggered by @${context.payload.comment.user.login}
+
+Status: \`${status}\`
+Report: ${reportUrl}
+Status URL: ${statusUrl}`
+            });
