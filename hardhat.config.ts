@@ -8,6 +8,7 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 
 const settings = {
+  evmVersion: 'cancun',
   optimizer: {
     enabled: true, // enabled for optimizer
     runs: 999999, // runs time for optimizer run

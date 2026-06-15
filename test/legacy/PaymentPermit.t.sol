@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import "../contracts/PaymentPermit.sol";
+import "../../contracts/legacy/PaymentPermit.sol";
 import "./MockERC20.sol";
-import "../contracts/interface/IPaymentPermit.sol";
-import "../contracts/libraries/PermitHash.sol";
+import "../../contracts/legacy/interface/IPaymentPermit.sol";
+import "../../contracts/legacy/libraries/PermitHash.sol";
 
 contract PaymentPermitTest is Test {
     using PermitHash for IPaymentPermit.PaymentPermitDetails;
