@@ -41,11 +41,11 @@ Flow: **User signs** `PaymentPermitDetails` (payment, fee, validity, nonce) → 
 
 ## Deployed Addresses
 
-| Network   | Chain / Environment | PaymentPermit Address |
-|-----------|---------------------|------------------------|
-| **TRON Mainnet** | Mainnet              | [`TT8rEWbCoNX7vpEUauxb7rWJsTgs8vDLAn`](https://tronscan.org/#/contract/TT8rEWbCoNX7vpEUauxb7rWJsTgs8vDLAn) |
-| **TRON Nile** | Testnet              | [`TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH`](https://nile.tronscan.org/#/contract/TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH) |
-| **TRON Shasta** | Testnet              | [`TR2XninQ3jsvRRLGTifFyUHTBysffooUjt`](https://shasta.tronscan.org/#/contract/TR2XninQ3jsvRRLGTifFyUHTBysffooUjt) |
+| Network   | Chain / Environment | PaymentPermit Address | x402ExactPermit2Proxy | x402BatchSettlement | x402UptoPermit2Proxy |
+|-----------|---------------------|------------------------|------------------------|------------------------|------------------------|
+| **TRON Mainnet** | Mainnet              | [`TT8rEWbCoNX7vpEUauxb7rWJsTgs8vDLAn`](https://tronscan.org/#/contract/TT8rEWbCoNX7vpEUauxb7rWJsTgs8vDLAn) | — | — | — |
+| **TRON Nile** | Testnet              | [`TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH`](https://nile.tronscan.org/#/contract/TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH) | [`TZ4xFKCDxiSMQsqrWWKBdXbD4a17nQaeT1`](https://nile.tronscan.org/#/contract/TZ4xFKCDxiSMQsqrWWKBdXbD4a17nQaeT1) | [`TKLsFK9B3iqtgQSqqfFkv4UEM81YKdKY3m`](https://nile.tronscan.org/#/contract/TKLsFK9B3iqtgQSqqfFkv4UEM81YKdKY3m) | [`TMaz5vj4zGWwjzQE6wqboRsypuxY23tcBX`](https://nile.tronscan.org/#/contract/TMaz5vj4zGWwjzQE6wqboRsypuxY23tcBX) |
+| **TRON Shasta** | Testnet              | [`TR2XninQ3jsvRRLGTifFyUHTBysffooUjt`](https://shasta.tronscan.org/#/contract/TR2XninQ3jsvRRLGTifFyUHTBysffooUjt) | — | — | — |
 
 | Network   | Chain / Environment | PaymentPermit Address |
 |-----------|---------------------|------------------------|
