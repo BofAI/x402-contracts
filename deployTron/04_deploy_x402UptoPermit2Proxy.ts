@@ -1,9 +1,10 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 
-// Canonical Permit2 address, identical on all EVM chains (deployed via CREATE2).
+// Permit2 address on the target Tron network.
+// base58: TYQuuhGbEMxF7nZxUHV3uHJxAVVAegNU9h
 // Override with PERMIT2_ADDRESS if the target Tron network uses a different one.
-const CANONICAL_PERMIT2 = '0xBE365314f2E77FD1257d60C346Bb32DbDa369403';
+const CANONICAL_PERMIT2 = '0xf62f506D1FaA02e2354a9886B4A200496EE96F4b';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
