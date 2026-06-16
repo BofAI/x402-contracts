@@ -1,16 +1,21 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 
+// Canonical Permit2 address, identical on all EVM chains (deployed via CREATE2).
+const CANONICAL_PERMIT2 = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
+
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  await deploy('Merchant', {
+  const permit2 = process.env.PERMIT2_ADDRESS || CANONICAL_PERMIT2;
+
+  await deploy('x402ExactPermit2Proxy', {
     from: deployer,
-    args: ['0x1DB6990CFAD265EFE4A0BB986488C04CC49FEE53','0xA3A3F5684FA066D9E5520FD5E592D87C322A58C2'], // '0x0997AEB2FB2E15E532B972C145E140B278510143', '0x55DC789DC6D58C596214F10D4A7717E9EC0A8CBB'
+    args: [permit2],
     log: true,
   });
 };
 export default func;
-func.tags = ['Merchant'];
+func.tags = ['x402ExactPermit2Proxy'];

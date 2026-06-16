@@ -6,11 +6,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  await deploy('MerchantAgent', {
+  await deploy('x402BatchSettlement', {
     from: deployer,
     args: [],
     log: true,
   });
 };
 export default func;
-func.tags = ['MerchantAgent'];
+func.tags = ['x402BatchSettlement'];
