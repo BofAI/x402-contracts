@@ -44,14 +44,14 @@ Flow: **User signs** `PaymentPermitDetails` (payment, fee, validity, nonce) → 
 | Network   | Chain / Environment | PaymentPermit Address | x402ExactPermit2Proxy | x402BatchSettlement | x402UptoPermit2Proxy |
 |-----------|---------------------|------------------------|------------------------|------------------------|------------------------|
 | **TRON Mainnet** | Mainnet              | [`TT8rEWbCoNX7vpEUauxb7rWJsTgs8vDLAn`](https://tronscan.org/#/contract/TT8rEWbCoNX7vpEUauxb7rWJsTgs8vDLAn) | — | — | — |
-| **TRON Nile** | Testnet              | [`TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH`](https://nile.tronscan.org/#/contract/TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH) | [`TFGoaq2KjizijgjtkVxT7yjffW1A5T1j6F`](https://nile.tronscan.org/#/contract/TFGoaq2KjizijgjtkVxT7yjffW1A5T1j6F) | [`TQGL1oGBPqX7WnYSmjyJQwHHqf5zQikPgR`](https://nile.tronscan.org/#/contract/TQGL1oGBPqX7WnYSmjyJQwHHqf5zQikPgR) | [`TKvcqQ7S2bYyys5ZZNpjj9xGiPhiwzHq1K`](https://nile.tronscan.org/#/contract/TKvcqQ7S2bYyys5ZZNpjj9xGiPhiwzHq1K) |
+| **TRON Nile** | Testnet              | [`TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH`](https://nile.tronscan.org/#/contract/TFxDcGvS7zfQrS1YzcCMp673ta2NHHzsiH) | [`TFGoaq2KjizijgjtkVxT7yjffW1A5T1j6F`](https://nile.tronscan.org/#/contract/TFGoaq2KjizijgjtkVxT7yjffW1A5T1j6F) | [`TWBwWHZWwH8TzrZnbxit1J645VGYY1K2fA`](https://nile.tronscan.org/#/contract/TWBwWHZWwH8TzrZnbxit1J645VGYY1K2fA) | [`TKvcqQ7S2bYyys5ZZNpjj9xGiPhiwzHq1K`](https://nile.tronscan.org/#/contract/TKvcqQ7S2bYyys5ZZNpjj9xGiPhiwzHq1K) |
 | **TRON Shasta** | Testnet              | [`TR2XninQ3jsvRRLGTifFyUHTBysffooUjt`](https://shasta.tronscan.org/#/contract/TR2XninQ3jsvRRLGTifFyUHTBysffooUjt) | — | — | — |
 
 ### Deposit Collectors
 
 | Network   | Chain / Environment | ERC3009DepositCollector | Permit2DepositCollector |
 |-----------|---------------------|--------------------------|--------------------------|
-| **TRON Nile** | Testnet          | [`TFU7hoDbxG8DE1LnAyY8QunoUpAbGVzP4Z`](https://nile.tronscan.org/#/contract/TFU7hoDbxG8DE1LnAyY8QunoUpAbGVzP4Z) | [`TUdqkmExXXUNjeeXUuQZGwLaEBuCujcvWb`](https://nile.tronscan.org/#/contract/TUdqkmExXXUNjeeXUuQZGwLaEBuCujcvWb) |
+| **TRON Nile** | Testnet          | [`TJUQ3BQt4YFg8EeevjiUa5LbfSGz5BxzRW`](https://nile.tronscan.org/#/contract/TJUQ3BQt4YFg8EeevjiUa5LbfSGz5BxzRW) | [`TEp6bCqSEKAr99sCiqANC84RtRwx7xGbA4`](https://nile.tronscan.org/#/contract/TEp6bCqSEKAr99sCiqANC84RtRwx7xGbA4) |
 
 | Network   | Chain / Environment | PaymentPermit Address |
 |-----------|---------------------|------------------------|

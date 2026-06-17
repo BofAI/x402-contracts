@@ -6,8 +6,9 @@ import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Multicall} from "@openzeppelin/contracts/utils/Multicall.sol";
 import {ReentrancyGuardTransient} from "@openzeppelin/contracts/utils/ReentrancyGuardTransient.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+
+import {SafeTransferLib} from "sun-contract-std/libraries/SafeTransferLib.sol";
 
 import {IDepositCollector} from "./interfaces/IDepositCollector.sol";
 
@@ -22,7 +23,6 @@ import {IDepositCollector} from "./interfaces/IDepositCollector.sol";
 ///
 /// @author Coinbase
 contract x402BatchSettlement is EIP712, Multicall, ReentrancyGuardTransient {
-    using SafeERC20 for IERC20;
 
     // =========================================================================
     // Structs
@@ -176,6 +176,7 @@ contract x402BatchSettlement is EIP712, Multicall, ReentrancyGuardTransient {
     error InvalidCollector();
     error InvalidRefundNonce();
     error ZeroRefund();
+    error TransferFailed();
 
     // =========================================================================
     // Constructor
@@ -301,7 +302,7 @@ contract x402BatchSettlement is EIP712, Multicall, ReentrancyGuardTransient {
 
         rs.totalSettled = rs.totalClaimed;
 
-        IERC20(token).safeTransfer(receiver, amount);
+        if (!SafeTransferLib.safeTransfer(token, receiver, amount)) revert TransferFailed();
 
         emit Settled(receiver, token, msg.sender, amount);
     }
@@ -381,7 +382,7 @@ contract x402BatchSettlement is EIP712, Multicall, ReentrancyGuardTransient {
         }
 
         if (withdrawAmount > 0) {
-            IERC20(config.token).safeTransfer(config.payer, withdrawAmount);
+            if (!SafeTransferLib.safeTransfer(config.token, config.payer, withdrawAmount)) revert TransferFailed();
         }
     }
 
@@ -582,6 +583,6 @@ contract x402BatchSettlement is EIP712, Multicall, ReentrancyGuardTransient {
             emit ChannelClosed(channelId, config);
         }
 
-        IERC20(config.token).safeTransfer(config.payer, refundAmount);
+        if (!SafeTransferLib.safeTransfer(config.token, config.payer, refundAmount)) revert TransferFailed();
     }
 }

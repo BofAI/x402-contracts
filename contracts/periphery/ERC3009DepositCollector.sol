@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeTransferLib} from "sun-contract-std/libraries/SafeTransferLib.sol";
 
 import {DepositCollector} from "./DepositCollector.sol";
 import {IDepositCollector} from "../interfaces/IDepositCollector.sol";
@@ -17,7 +16,8 @@ import {IERC3009} from "../interfaces/IERC3009.sol";
 ///
 /// @author Coinbase
 contract ERC3009DepositCollector is DepositCollector {
-    using SafeERC20 for IERC20;
+    /// @notice Thrown when the forwarding transfer to `x402BatchSettlement` fails.
+    error TransferFailed();
 
     /// @param _x402BatchSettlement The `x402BatchSettlement` contract that receives pulled tokens.
     constructor(
@@ -47,6 +47,6 @@ contract ERC3009DepositCollector is DepositCollector {
             payer, address(this), amount, validAfter, validBefore, expectedNonce, signature
         );
 
-        IERC20(token).safeTransfer(x402BatchSettlement, amount);
+        if (!SafeTransferLib.safeTransfer(token, x402BatchSettlement, amount)) revert TransferFailed();
     }
 }
