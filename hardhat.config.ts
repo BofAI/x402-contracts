@@ -54,6 +54,12 @@ const config: HardhatUserConfig = {
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [], // account private key for deploy
       ...tronHeaders, // TronGrid API key header (if TRONGRID_API_KEY set)
     },
+    bscTestnet: {
+      url: process.env.BSC_TESTNET_RPC_URL || 'https://bsc-testnet.publicnode.com', // bsc testnet rpc url
+      chainId: 97, // bsc testnet chain id
+      // no `deploy` field => uses default deploy/ (EVM scripts); no `tron` flag => standard EVM flow
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [], // account private key for deploy
+    },
   },
   tronSolc: {
     enable: true, // enable tron solc compiler
