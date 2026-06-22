@@ -14,3 +14,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 export default func;
 func.tags = ['PaymentPermit'];
+// PaymentPermit is a legacy contract and is no longer deployed.
+// Always skipped (applies to full deploys and `--tags PaymentPermit` alike);
+// remove this guard if it ever needs to be deployed again.
+func.skip = async () => true;

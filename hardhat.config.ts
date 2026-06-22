@@ -15,6 +15,11 @@ const settings = {
   },
 }
 
+// TronGrid API key (raises rate limits / avoids 429). Sent as TRON-PRO-API-KEY header.
+const tronHeaders = process.env.TRONGRID_API_KEY
+  ? { httpHeaders: { 'TRON-PRO-API-KEY': process.env.TRONGRID_API_KEY } }
+  : {}
+
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
@@ -33,18 +38,21 @@ const config: HardhatUserConfig = {
       tron: true, // enable tron network
       deploy: ['deployTron/'], // folder for tron deploy scripts
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [], // account private key for deploy
+      ...tronHeaders, // TronGrid API key header (if TRONGRID_API_KEY set)
     },
     nile: {
       url: process.env.TRON_RPC_URL || 'https://nile.trongrid.io/jsonrpc', // nile rpc url
       tron: true, // enable nile network
       deploy: ['deployTron/'], // folder for nile deploy scripts
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [], // account private key for deploy
+      ...tronHeaders, // TronGrid API key header (if TRONGRID_API_KEY set)
     },
     shasta: {
       url: process.env.TRON_RPC_URL || 'https://api.shasta.trongrid.io/jsonrpc', // shasta rpc url
       tron: true, // enable shasta network
       deploy: ['deployTron/'], // folder for shasta deploy scripts
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [], // account private key for deploy
+      ...tronHeaders, // TronGrid API key header (if TRONGRID_API_KEY set)
     },
   },
   tronSolc: {
