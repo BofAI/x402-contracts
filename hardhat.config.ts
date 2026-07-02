@@ -8,11 +8,17 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 
 const settings = {
+  evmVersion: 'cancun',
   optimizer: {
     enabled: true, // enabled for optimizer
     runs: 999999, // runs time for optimizer run
   },
 }
+
+// TronGrid API key (raises rate limits / avoids 429). Sent as TRON-PRO-API-KEY header.
+const tronHeaders = process.env.TRONGRID_API_KEY
+  ? { httpHeaders: { 'TRON-PRO-API-KEY': process.env.TRONGRID_API_KEY } }
+  : {}
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -32,17 +38,26 @@ const config: HardhatUserConfig = {
       tron: true, // enable tron network
       deploy: ['deployTron/'], // folder for tron deploy scripts
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [], // account private key for deploy
+      ...tronHeaders, // TronGrid API key header (if TRONGRID_API_KEY set)
     },
     nile: {
       url: process.env.TRON_RPC_URL || 'https://nile.trongrid.io/jsonrpc', // nile rpc url
       tron: true, // enable nile network
-      deploy: ['deploy/'], // folder for nile deploy scripts
+      deploy: ['deployTron/'], // folder for nile deploy scripts
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [], // account private key for deploy
+      ...tronHeaders, // TronGrid API key header (if TRONGRID_API_KEY set)
     },
     shasta: {
       url: process.env.TRON_RPC_URL || 'https://api.shasta.trongrid.io/jsonrpc', // shasta rpc url
       tron: true, // enable shasta network
-      deploy: ['deploy/'], // folder for shasta deploy scripts
+      deploy: ['deployTron/'], // folder for shasta deploy scripts
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [], // account private key for deploy
+      ...tronHeaders, // TronGrid API key header (if TRONGRID_API_KEY set)
+    },
+    bscTestnet: {
+      url: process.env.BSC_TESTNET_RPC_URL || 'https://bsc-testnet.publicnode.com', // bsc testnet rpc url
+      chainId: 97, // bsc testnet chain id
+      // no `deploy` field => uses default deploy/ (EVM scripts); no `tron` flag => standard EVM flow
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [], // account private key for deploy
     },
   },
