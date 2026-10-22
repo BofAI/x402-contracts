@@ -68,6 +68,18 @@ Flow (exact/upto): **Payer signs** a Permit2 permit + witness (destination, vali
 
 ---
 
+## Development Requirements
+
+- **Node.js**: `^22.23.4 || ^24.22.1` (default: `22.23.4`, see `.nvmrc`)
+- **pnpm** or **npm** for Hardhat tooling
+- **Foundry** for Solidity tests
+
+If you use nvm, run `nvm install` and `nvm use` before installing dependencies.
+
+These requirements apply to the development and deployment tools. They do not change the deployed contracts.
+
+---
+
 ## Project Layout
 
 ```
